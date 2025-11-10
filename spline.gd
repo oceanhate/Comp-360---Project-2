@@ -82,50 +82,38 @@ func create_floor(size: float = 100.0):
 
 
 #creates a curve between two points, start and end, bounded by the floor 
-func generate_random_curve(start: Vector3, end: Vector3, bounds: Dictionary,
-		num_points: int = 50,
-		curve_amplitude: float = 20.0,
-		curve_frequency: float = 2.0,
-		height_amplitude: float = 3.0,
-		bank_amount_degrees: float = 12.0) -> Curve3D:
-	
+func generate_random_curve(start: Vector3, end: Vector3, bounds: Dictionary, num_points: int = 6, height_variation: float = 10.0) -> Curve3D:
 	var curve = Curve3D.new()
+	curve.add_point(start)
+	
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
 	
-	var forward = (end - start).normalized()
-	var right = forward.cross(Vector3.UP).normalized()
-	
-	# Smooth varying amplitude & frequency
-	var amp_start = curve_amplitude + rng.randf_range(-30.0, 30.0)
-	var amp_end   = curve_amplitude + rng.randf_range(-30.0, 30.0)
-	
-	var freq_start = curve_frequency + rng.randf_range(-0.5, 0.5)
-	var freq_end   = curve_frequency + rng.randf_range(-0.5, 0.5)
-	
-	for i in range(num_points + 1):
+	for i in range(1, num_points):
 		var t = float(i) / num_points
-		var pos = start.lerp(end, t)
+		var interp = start.lerp(end, t)
 		
-		var amp = lerp(amp_start, amp_end, t)
-		var freq = lerp(freq_start, freq_end, t)
+		# Random horizontal offsets
+		var lateral = Vector3(
+			rng.randf_range(-10.0, 10.0),
+			0,
+			rng.randf_range(-10.0, 10.0)
+		)
 		
-		# Horizontal curve shape
-		var turn_strength = sin(t * PI * freq)
-		var sideways = turn_strength * amp
-		pos += right * sideways
+		# Random upward variation (never below 0)
+		var random_height = rng.randf_range(0.0, height_variation)
 		
-		# Vertical roll
-		pos.y += sin(t * PI * freq * 0.5) * height_amplitude
+		var new_point = interp + lateral
+		new_point.y += random_height
 		
-		# Clamp inside map bounds
-		pos.x = clamp(pos.x, bounds["min"].x, bounds["max"].x)
-		pos.y = clamp(pos.y, 0.0, bounds["max"].y)
-		pos.z = clamp(pos.z, bounds["min"].z, bounds["max"].z)
+		# Keep above ground and inside map boundaries
+		new_point.x = clamp(new_point.x, bounds["min"].x, bounds["max"].x)
+		new_point.y = clamp(new_point.y, 0.0, bounds["max"].y)
+		new_point.z = clamp(new_point.z, bounds["min"].z, bounds["max"].z)
 		
-		curve.add_point(pos)
-
-		
+		curve.add_point(new_point)
+	
+	curve.add_point(end)
 	return curve
 
 
