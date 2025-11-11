@@ -1,0 +1,113 @@
+[gd_scene load_steps=26 format=3 uid="uid://eymnppgeg2ae"]
+
+[ext_resource type="Script" uid="uid://cvj8v0267xpfh" path="res://spline.gd" id="1_a202f"]
+[ext_resource type="Script" path="res://car.gd" id="2_lggff"]
+[ext_resource type="Script" uid="uid://bwockbc28wfxv" path="res://car_body.gd" id="3_s0gvp"]
+[ext_resource type="Script" path="res://logo.gd" id="4_vxd74"]
+[ext_resource type="Script" path="res://headlight_1.gd" id="5_dhlwf"]
+[ext_resource type="Script" path="res://light_1.gd" id="6_5t8nk"]
+[ext_resource type="Script" path="res://headlight_2.gd" id="7_j3e5s"]
+[ext_resource type="Script" path="res://light_2.gd" id="8_nu31w"]
+[ext_resource type="Script" path="res://rightside_body.gd" id="9_obt1j"]
+[ext_resource type="Script" path="res://leftside_body.gd" id="10_2yde8"]
+[ext_resource type="Script" uid="uid://dymp1debkcq64" path="res://front_left_wheel.gd" id="11_id0nj"]
+[ext_resource type="Script" path="res://wheel_mesh_1.gd" id="12_1q667"]
+[ext_resource type="Script" uid="uid://b7kle87i0abio" path="res://front_right_wheel.gd" id="13_ype4i"]
+[ext_resource type="Script" path="res://wheel_mesh_2.gd" id="14_riyl1"]
+[ext_resource type="Script" uid="uid://ccmxk5yx6swcb" path="res://back_left_wheel.gd" id="15_pb8dk"]
+[ext_resource type="Script" path="res://wheel_mesh_3.gd" id="16_2mu51"]
+[ext_resource type="Script" uid="uid://bhonvjpheioxh" path="res://back_right_wheel.gd" id="17_vmvb8"]
+[ext_resource type="Script" path="res://wheel_mesh_4.gd" id="18_4i7mf"]
+[ext_resource type="Script" uid="uid://qb6dfnvul0xk" path="res://camera_3d.gd" id="19_3s0n5"]
+[ext_resource type="Script" path="res://engine_idle.gd" id="20_qpkl4"]
+[ext_resource type="Script" path="res://engine_audio.gd" id="21_g4s1x"]
+[ext_resource type="Script" uid="uid://dr8y4qryr64so" path="res://ground.gd" id="22_s0gvp"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_s0gvp"]
+size = Vector3(1.5, 0.5, 3)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_vxd74"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_s0gvp"]
+
+[node name="Node3D" type="Node3D"]
+script = ExtResource("1_a202f")
+
+[node name="CarSimulation" type="Node3D" parent="."]
+
+[node name="car" type="VehicleBody3D" parent="CarSimulation"]
+script = ExtResource("2_lggff")
+
+[node name="car_body" type="MeshInstance3D" parent="CarSimulation/car"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.60203135, 1.0819825, 0.1858362)
+mesh = SubResource("BoxMesh_s0gvp")
+script = ExtResource("3_s0gvp")
+
+[node name="Logo" type="MeshInstance3D" parent="CarSimulation/car/car_body"]
+script = ExtResource("4_vxd74")
+
+[node name="Headlight1" type="MeshInstance3D" parent="CarSimulation/car/car_body"]
+script = ExtResource("5_dhlwf")
+
+[node name="light1" type="SpotLight3D" parent="CarSimulation/car/car_body/Headlight1"]
+script = ExtResource("6_5t8nk")
+
+[node name="Headlight2" type="MeshInstance3D" parent="CarSimulation/car/car_body"]
+script = ExtResource("7_j3e5s")
+
+[node name="light2" type="SpotLight3D" parent="CarSimulation/car/car_body/Headlight2"]
+script = ExtResource("8_nu31w")
+
+[node name="rightside_body" type="MeshInstance3D" parent="CarSimulation/car/car_body"]
+script = ExtResource("9_obt1j")
+
+[node name="leftside_body" type="MeshInstance3D" parent="CarSimulation/car/car_body"]
+script = ExtResource("10_2yde8")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CarSimulation/car"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2855899, 0)
+shape = SubResource("ConvexPolygonShape3D_vxd74")
+
+[node name="front_left_wheel" type="VehicleWheel3D" parent="CarSimulation/car"]
+script = ExtResource("11_id0nj")
+
+[node name="wheelMesh1" type="MeshInstance3D" parent="CarSimulation/car/front_left_wheel"]
+script = ExtResource("12_1q667")
+
+[node name="front_right_wheel" type="VehicleWheel3D" parent="CarSimulation/car"]
+script = ExtResource("13_ype4i")
+
+[node name="wheelMesh2" type="MeshInstance3D" parent="CarSimulation/car/front_right_wheel"]
+script = ExtResource("14_riyl1")
+
+[node name="back_left_wheel" type="VehicleWheel3D" parent="CarSimulation/car"]
+script = ExtResource("15_pb8dk")
+
+[node name="wheelMesh3" type="MeshInstance3D" parent="CarSimulation/car/back_left_wheel"]
+script = ExtResource("16_2mu51")
+
+[node name="back_right_wheel" type="VehicleWheel3D" parent="CarSimulation/car"]
+script = ExtResource("17_vmvb8")
+
+[node name="wheelMesh4" type="MeshInstance3D" parent="CarSimulation/car/back_right_wheel"]
+script = ExtResource("18_4i7mf")
+
+[node name="Camera3D" type="Camera3D" parent="CarSimulation/car"]
+transform = Transform3D(-0.9970768, 0, 0.07640576, 0.0040001003, 0.9986286, 0.052200347, -0.07630098, 0.052353386, -0.9957094, -0.49786332, 1.8072505, 0.535238)
+script = ExtResource("19_3s0n5")
+
+[node name="EngineIdle" type="AudioStreamPlayer3D" parent="CarSimulation/car"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2045715, 0)
+script = ExtResource("20_qpkl4")
+
+[node name="EngineAudio" type="AudioStreamPlayer3D" parent="CarSimulation/car"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2089591, 0)
+script = ExtResource("21_g4s1x")
+
+[node name="SpawnArea" type="StaticBody3D" parent="."]
+script = ExtResource("22_s0gvp")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SpawnArea"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnArea"]
+shape = SubResource("ConvexPolygonShape3D_s0gvp")

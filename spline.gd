@@ -1,7 +1,8 @@
 extends Node3D
 #this is GD script for lates godot version (Nov 2, 2025, V4.4 I think????)
 #root for road generation
-#use node 3D and attached script, no other nodes needed to funciton, this includes testing for visualiatoin. Implment primitive triangles mesh creation between left and right points. 
+#use node 3D and attached script, no other nodes needed to funciton, this includes testing for visualiatoin. Implment primitive triangles mesh creation between left and right points.
+
 
 func create_debug_sphere(position: Vector3, color: Color) -> MeshInstance3D:
 	var sphere = MeshInstance3D.new()
@@ -77,6 +78,13 @@ func create_floor(size: float = 100.0):
 	var mat = StandardMaterial3D.new()
 	mat.albedo_color = Color(0.3, 0.3, 0.3)
 	floor.material_override = mat
+	var static_body = StaticBody3D.new()
+	var collision = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = Vector3(size / 2, 0.1, size / 2) # thin floor for physics
+	collision.shape = shape
+	static_body.add_child(collision)
+	floor.add_child(static_body)
 	
 	add_child(floor)
 
@@ -172,11 +180,112 @@ func _ready():
 	add_child(create_line_visualization(offsets["right"], Color.GREEN.darkened(0.4)))
 
 	# Camera + Lighting
-	var camera = Camera3D.new()
-	add_child(camera)
-	camera.position = Vector3(0, 80, 150)
-	camera.look_at(Vector3(0, 0, 0), Vector3.UP)
+	#var camera = Camera3D.new()
+	#add_child(camera)
+	#camera.position = Vector3(0, 80, 150)
+	#camera.look_at(Vector3(0, 0, 0), Vector3.UP)
 
 	var light = DirectionalLight3D.new()
 	add_child(light)
 	light.rotation_degrees = Vector3(-45, 45, 0)
+	
+
+	if has_node("CarSimulation/car") and has_node("SpawnArea"):
+		var car = get_node("CarSimulation/car")
+		var spawn_area = get_node("SpawnArea")
+		spawn_area.offsets = offsets
+		spawn_area.curve = curve
+		spawn_area.setup_spawn_area()
+		spawn_area.spawn_car(car)
+
+		
+	
+	create_road_mesh(offsets)
+	create_obstacles(curve,offsets)
+	
+
+
+func create_road_mesh(offsets: Dictionary):
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	
+	#testing material
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.2, 0.2, 0.2)
+	mat.roughness = 1.0
+	st.set_material(mat)
+	
+	var left_points = offsets["left"]
+	var right_points = offsets["right"]
+	
+	for i in range(left_points.size() - 1):
+		var l1 = left_points[i]
+		var r1 = right_points[i]
+		var l2 = left_points[i + 1]
+		var r2 = right_points[i + 1]
+		
+		# Triangle 1
+		st.add_vertex(l1)
+		st.add_vertex(r1)
+		st.add_vertex(r2)
+		
+		# Triangle 2
+		st.add_vertex(l1)
+		st.add_vertex(r2)
+		st.add_vertex(l2)
+	
+	st.generate_normals()
+	
+	var mesh = st.commit()
+	var mesh_instance = MeshInstance3D.new()
+	mesh_instance.mesh = mesh
+	
+	# Add collision for driving
+	var static_body = StaticBody3D.new()
+	var shape = CollisionShape3D.new()
+	var shape_resource = ConcavePolygonShape3D.new()
+	shape_resource.data = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	shape.shape = shape_resource
+	static_body.add_child(shape)
+	mesh_instance.add_child(static_body)
+	
+	add_child(mesh_instance)
+
+
+func create_obstacles(curve: Curve3D, offsets: Dictionary):
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	var obstacle_count = 14
+	var total_length = curve.get_baked_length()
+
+	for i in range(obstacle_count):
+		var d = rng.randf_range(5.0, total_length - 5.0)
+		var idx = clamp(int(d), 0, offsets["left"].size() - 1)
+		var left_point = offsets["left"][idx]
+		var right_point = offsets["right"][idx]
+		var t = rng.randf_range(0.2, 0.8)                      #random offset
+		var pos = left_point.lerp(right_point, t)
+
+		pos.y += 1.0 + rng.randf_range(0.0, 0.5)
+
+		var obstacle = MeshInstance3D.new()
+		var mesh = BoxMesh.new()
+		mesh.size = Vector3(2, 2, 2)
+		obstacle.mesh = mesh
+
+		var mat_obs = StandardMaterial3D.new()
+		mat_obs.albedo_color = Color(0.8, 0.2, 0.2)
+		obstacle.material_override = mat_obs
+		obstacle.position = pos
+
+		# Add collision
+		var body = StaticBody3D.new()
+		var shape = CollisionShape3D.new()
+		var box_shape = BoxShape3D.new()
+		box_shape.size = Vector3(2, 2, 2)
+		shape.shape = box_shape
+		body.add_child(shape)
+		obstacle.add_child(body)
+
+		add_child(obstacle)
+		
